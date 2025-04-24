@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="App">
       <header style={headerStyle}>
-        <h1> GitHub Repo Analytics Dashboard - CI/CD</h1>
+        <h1> GitHub Repo Analytics Dashboard - Assignment 5</h1>
       </header>
       <main style={{ padding: '2rem' }}>
         <RepoCharts />
