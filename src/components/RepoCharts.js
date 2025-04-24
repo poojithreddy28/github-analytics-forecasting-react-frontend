@@ -4,109 +4,90 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 
-const REPOS = [
-  'meta-llama/llama3',
-  'ollama/ollama',
-  'langchain-ai/langchain',
-  'langchain-ai/langgraph',
-  'microsoft/autogen',
-  'openai/openai-cookbook',
-  'elastic/elasticsearch',
-  'milvus-io/pymilvus'
-];
-
-export default function RepoCharts() {
-  const [repoData, setRepoData] = useState([]);
+export default function RepoCharts({ repo }) {
+  const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/summary')
-      .then(res => res.json())
-      .then(data => setRepoData(data))
-      .catch(err => console.error(err));
-  }, []);
+    if (repo) {
+      fetch(`http://localhost:5000/api/repo?name=${encodeURIComponent(repo)}`)
+        .then(res => res.json())
+        .then(setData)
+        .catch(console.error);
+    }
+  }, [repo]);
+
+  if (!data) return <div className="p-8">🔄 Select a repository to view charts</div>;
 
   return (
-    <div className="p-4 space-y-12">
-      <h2 className="text-2xl font-bold">📈 GitHub Repository Analytics</h2>
+    <div className="p-8 flex-1 space-y-12 overflow-auto">
+      <h2 className="text-2xl font-bold">📊 {repo} — Charts</h2>
 
-      {/* Line Chart for Issues over time */}
-      <h3 className="text-xl font-semibold">Issue Trend (Line Chart)</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={repoData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="repo" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="issues" stroke="#8884d8" />
-        </LineChart>
-      </ResponsiveContainer>
+      <ChartSection title="Issues Trend (Line)">
+        <LineChartComponent data={data} dataKey="issues" />
+      </ChartSection>
 
-      {/* Monthly Issues Bar Chart */}
-      <h3 className="text-xl font-semibold">Monthly Issues (Bar Chart)</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={repoData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="repo" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="monthly_issues" fill="#82ca9d" />
-        </BarChart>
-      </ResponsiveContainer>
+      <ChartSection title="Monthly Issues (Bar)">
+        <BarChartComponent data={data} dataKey="monthly_issues" />
+      </ChartSection>
 
-      {/* Stars Bar Chart */}
-      <h3 className="text-xl font-semibold">Stars (Bar Chart)</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={repoData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="repo" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="stars" fill="#ffc658" />
-        </BarChart>
-      </ResponsiveContainer>
+      <ChartSection title="Stars (Bar)">
+        <BarChartComponent data={data} dataKey="stars" fill="#ffc658" />
+      </ChartSection>
 
-      {/* Forks Bar Chart */}
-      <h3 className="text-xl font-semibold">Forks (Bar Chart)</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={repoData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="repo" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="forks" fill="#8884d8" />
-        </BarChart>
-      </ResponsiveContainer>
+      <ChartSection title="Forks (Bar)">
+        <BarChartComponent data={data} dataKey="forks" />
+      </ChartSection>
 
-      {/* Weekly Issues Closed Bar Chart */}
-      <h3 className="text-xl font-semibold">Weekly Closed Issues (Bar Chart)</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={repoData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="repo" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="weekly_closed_issues" fill="#ff8042" />
-        </BarChart>
-      </ResponsiveContainer>
+      <ChartSection title="Closed Issues Weekly (Bar)">
+        <BarChartComponent data={data} dataKey="weekly_closed_issues" fill="#ff8042" />
+      </ChartSection>
 
-      {/* Stack Bar Chart for Created vs Closed Issues */}
-      <h3 className="text-xl font-semibold">Created vs Closed Issues (Stacked Bar)</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={repoData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="repo" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="created_issues" stackId="a" fill="#0088FE" />
-          <Bar dataKey="closed_issues" stackId="a" fill="#00C49F" />
-        </BarChart>
-      </ResponsiveContainer>
+      <ChartSection title="Created vs Closed (Stacked)">
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="created_issues" stackId="a" fill="#0088FE" />
+            <Bar dataKey="closed_issues" stackId="a" fill="#00C49F" />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartSection>
     </div>
   );
 }
+
+const ChartSection = ({ title, children }) => (
+  <div>
+    <h3 className="text-xl font-semibold mb-2">{title}</h3>
+    {children}
+  </div>
+);
+
+const BarChartComponent = ({ data, dataKey, fill = "#82ca9d" }) => (
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="date" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Bar dataKey={dataKey} fill={fill} />
+    </BarChart>
+  </ResponsiveContainer>
+);
+
+const LineChartComponent = ({ data, dataKey }) => (
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="date" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Line type="monotone" dataKey={dataKey} stroke="#8884d8" />
+    </LineChart>
+  </ResponsiveContainer>
+);

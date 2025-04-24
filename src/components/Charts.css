@@ -1,0 +1,22 @@
+.charts {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .charts h2 {
+    margin-bottom: 16px;
+  }
+  
+  .charts img {
+    width: 90%;
+    margin: 20px 0;
+    border: 1px solid #ccc;
+    padding: 8px;
+    background: #fff;
+  }
+  
+  .placeholder {
+    font-size: 18px;
+    color: #777;
+  }
